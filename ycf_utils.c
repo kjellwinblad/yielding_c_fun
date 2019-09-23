@@ -48,7 +48,7 @@ void ycf_enable_memory_tracking(){
 void ycf_malloc_log(char* log_file, char* log_entry_id) {
     FILE* out = fopen(log_file, "a");
     fprintf(out,
-            "(%s)\nMax memory consumption %lu bytes ~ %lu kilo bytes ~ %lu mega bytes (after=%lu)\n",
+            "(%s)\nMax memory consumption %zu bytes ~ %zu kilo bytes ~ %zu mega bytes (after=%zu)\n",
             log_entry_id,
             ycf_max_memory_usage,
             ycf_max_memory_usage / 1000,

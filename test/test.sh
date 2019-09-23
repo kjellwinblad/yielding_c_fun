@@ -167,9 +167,10 @@ yielding_c_fun $GC $RR -log_max_mem_usage "$MEM_LOG_FILE" -yield -debug -fnoauto
 test -f "$MEM_LOG_FILE"
 #rm "$MEM_LOG_FILE"
 
-if [ `rebar3 > /dev/null 2>&1 ; echo $?` = 0 ]
-then
-    (cd "$DIR/examples/sha256_erlang_nif/" && make clean && make test)
-fi
+# Uncomment to the test the Erlang NIF example
+# if [ `rebar3 > /dev/null 2>&1 ; echo $?` = 0 ]
+# then
+#     (cd "$DIR/examples/sha256_erlang_nif/" && make clean && make test)
+# fi
 
 

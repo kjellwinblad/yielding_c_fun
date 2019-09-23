@@ -1,5 +1,17 @@
 origin	https://github.com/kjellwinblad/simple_c_gc.git (fetch)
 origin	https://github.com/kjellwinblad/simple_c_gc.git (push)
+commit 41e6f3558756d9b6da44ca5247049c23bceadad9
+Author: Kjell Winblad <kjellwinblad@gmail.com>
+Date:   Mon Sep 23 16:25:55 2019 +0200
+
+    Small fix
+
+commit 8fbd03f880a1eb741462c395e689d844f8d58e06
+Author: Kjell Winblad <kjellwinblad@gmail.com>
+Date:   Mon Sep 23 16:13:56 2019 +0200
+
+    Fix compile warnings when compiling on a 32-bit system
+
 commit fc051d92bbef9ad1a22f855bc24b46d4efadda93
 Author: Kjell Winblad <kjellwinblad@gmail.com>
 Date:   Tue Sep 10 15:14:20 2019 +0200

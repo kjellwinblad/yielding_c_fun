@@ -46,8 +46,8 @@ int my_main(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
   /*Test the gc*/
   scgc_start_gced_code(my_main, argc, argv, my_malloc, my_free);
-  fprintf(stderr, "Peek nr of live objects: %lu\n", peek_nr_of_objects);
-  fprintf(stderr, "Nr of objects after: %lu\n", nr_of_objects);
-  fprintf(stderr, "Nr of objects created: %lu\n", nr_of_objects_created);
+  fprintf(stderr, "Peek nr of live objects: %zu\n", peek_nr_of_objects);
+  fprintf(stderr, "Nr of objects after: %zu\n", nr_of_objects);
+  fprintf(stderr, "Nr of objects created: %zu\n", nr_of_objects_created);
   return 0;
 }
