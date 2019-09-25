@@ -262,8 +262,8 @@ static inline void ch_set_free(void *setParam) {
 static inline char *ch_set_to_string(void *setParam) {
   ChainedHashSet *set = (ChainedHashSet *)setParam;
   unsigned int numberOfBuckets = set->numberOfBuckets;
-  char *bucketStrings[numberOfBuckets];
-  unsigned int bucketStringSizes[numberOfBuckets];
+  char **bucketStrings = malloc(sizeof(char*)*numberOfBuckets);
+  unsigned int *bucketStringSizes = malloc(sizeof(unsigned int)*numberOfBuckets);
   unsigned int totalBucketsStringSize = 0;
   SortedListSet *tempListSet = plain_sl_set_create(
       set->keyPosition, set->extract_key, set->hash_key, set->are_equal,
@@ -290,6 +290,8 @@ static inline char *ch_set_to_string(void *setParam) {
     }
   }
   sprintf(&resultString[currentPosition], "]");
+  free(bucketStrings);
+  free(bucketStringSizes);
   return resultString;
 }
 

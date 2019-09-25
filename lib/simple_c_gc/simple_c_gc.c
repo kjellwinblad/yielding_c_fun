@@ -131,7 +131,7 @@ static int scgc_start_gced_code_2(int (*main)(int, char *[]), int argc,
                                   char **argv[]) {
   volatile int noinline = 1;
   volatile char **my_argv = (volatile char **)*argv;
-  scgc_stack_top = my_argv;
+  scgc_stack_top = (void *)my_argv;
   int (*next)(int, char *[]) = noinline ? main : (int (*)(int, char *[]))(NULL);
   {
     int to_return;
@@ -161,7 +161,7 @@ static void *scgc_min(void *a, void *b) { return a <= b ? a : b; }
 
 static void *scgc_max(void *a, void *b) { return a > b ? a : b; }
 
-static void ycf_find_stack_bottom_and_mark_conservative_helper() {
+static void ycf_find_stack_bottom_and_mark_conservative_helper(void) {
   volatile void *p = NULL;
   volatile intptr_t stack_bottom = (intptr_t)&p;
   scgc_mark_reachable_objects_in_region(

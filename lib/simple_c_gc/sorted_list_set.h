@@ -328,8 +328,8 @@ static inline void sl_set_print(void *setParam) {
 static inline char *sl_set_to_string(void *setParam) {
   SortedListSet *set = (SortedListSet *)setParam;
   unsigned int numberOfElements = sl_set_size(set);
-  char *stringArray[numberOfElements];
-  unsigned int stringLengths[numberOfElements];
+  char **stringArray = malloc(sizeof(char*)*numberOfElements);
+  unsigned int *stringLengths = malloc(sizeof(unsigned int)*numberOfElements);
   SortedListSetNode *previous = (SortedListSetNode *)set;
   SortedListSetNode *current = previous->next;
   unsigned int elementNumber = 0;
@@ -337,6 +337,8 @@ static inline char *sl_set_to_string(void *setParam) {
   if (numberOfElements == 0) {
     char *buffer = (char *)set->malloc(3);
     sprintf(buffer, "[]");
+    free(stringArray);
+    free(stringLengths);
     return buffer;
   }
   while (current != NULL) {
@@ -360,6 +362,8 @@ static inline char *sl_set_to_string(void *setParam) {
     }
   }
   sprintf(&stringBuffer[currentPosition], "]");
+  free(stringArray);
+  free(stringLengths);
   return stringBuffer;
 }
 

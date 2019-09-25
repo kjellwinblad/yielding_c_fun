@@ -1,5 +1,11 @@
 origin	https://github.com/kjellwinblad/simple_c_gc.git (fetch)
 origin	https://github.com/kjellwinblad/simple_c_gc.git (push)
+commit 76577516b6e9bd8e8f647d869fb19361f42f9f9f
+Author: Kjell Winblad <kjellwinblad@gmail.com>
+Date:   Wed Sep 25 16:04:40 2019 +0200
+
+    Fix more Microsoft VS C/C++ compiler errors
+
 commit 4b2734f051ca1386bb970af6b0308e5f2d338403
 Author: Kjell Winblad <kjellwinblad@gmail.com>
 Date:   Tue Sep 24 16:36:48 2019 +0200
