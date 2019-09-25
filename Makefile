@@ -54,9 +54,12 @@ $(ODIR)/%.o: %.c $(DEPS)
 .PHONY: clean test run_test_continusly CMakeLists.txt cmake_compile clang_format test_add_san test_mem_san test_modern_cc test_sanitizers test_gcc_clang_tcc clang_tidy test_all
 
 test: bin/yielding_c_fun.bin
-	./test/test.sh $(USE_GC_STRING) &&\
+	./test/test.sh $(USE_GC_STRING) ;\
+	RESULT=$$? &&\
+	(exit $$RESULT) &&\
 	printf "\n\n\033[0;32mALL TESTS PASSED!\033[0m\n\n\n" ||\
-	printf "\n\n\033[0;31mTEST FAILED!\033[0m\n\n\n"
+	printf "\n\n\033[0;31mTEST FAILED!\033[0m\n\n\n" &&\
+	exit $$RESULT
 
 test_add_san:
 	make clean && \
@@ -80,8 +83,8 @@ test_sanitizers:
 	make test_ub_san
 
 test_gcc_clang_tcc:
-	make CC=gcc EXTRA_C_FLAGS="-g -O01 -std=c99 -pedantic -Wall -Werror" clean bin/yielding_c_fun.bin
-	make CC=clang EXTRA_C_FLAGS="-g -O01 -std=c99 -pedantic -Wall -Werror" clean bin/yielding_c_fun.bin
+	make CC=gcc EXTRA_C_FLAGS="-g -O01 -std=c99 -pedantic -Wall -Werror" clean bin/yielding_c_fun.bin && \
+	make CC=clang EXTRA_C_FLAGS="-g -O01 -std=c99 -pedantic -Wall -Werror" clean bin/yielding_c_fun.bin && \
 	make CC=tcc EXTRA_C_FLAGS="-g -O01 -std=c99 -pedantic -Wall -Werror" clean bin/yielding_c_fun.bin
 
 test_32_bit:

@@ -28,6 +28,11 @@
 #ifndef CHAINED_HASH_SET_H
 #define CHAINED_HASH_SET_H
 
+
+#if defined(_MSC_VER)
+#define inline __inline
+#endif
+
 #include "sorted_list_set.h"
 #include <stdint.h>
 

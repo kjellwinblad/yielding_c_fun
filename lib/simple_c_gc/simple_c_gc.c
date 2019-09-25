@@ -122,7 +122,7 @@ static void scgc_initialize_global_state() {
 
 static void scgc_do_gc(bool no_stack);
 
-static inline void scgc_destroy_global_state() {
+static void scgc_destroy_global_state() {
   scgc_do_gc(true);
   ch_set_free(scgc_objects);
 }

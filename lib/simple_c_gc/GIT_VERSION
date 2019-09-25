@@ -1,5 +1,11 @@
 origin	https://github.com/kjellwinblad/simple_c_gc.git (fetch)
 origin	https://github.com/kjellwinblad/simple_c_gc.git (push)
+commit 4b2734f051ca1386bb970af6b0308e5f2d338403
+Author: Kjell Winblad <kjellwinblad@gmail.com>
+Date:   Tue Sep 24 16:36:48 2019 +0200
+
+    Make compatible with Microsoft VS C/C++ compiler and fix make test
+
 commit 41e6f3558756d9b6da44ca5247049c23bceadad9
 Author: Kjell Winblad <kjellwinblad@gmail.com>
 Date:   Mon Sep 23 16:25:55 2019 +0200
