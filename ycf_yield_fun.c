@@ -291,12 +291,20 @@ ycf_node* mk_yield_fun_call(ycf_node* c_file_node,
 
   char* code = ycf_string_new("%s"
                               "%s"
-                              "%s %s%s_ycf_gen_yielding(&ycf_nr_of_reductions,&%s,ycf_extra_context,ycf_yield_alloc,ycf_yield_free,ycf_yield_alloc_free_context,YCF_ALLOC_NEXT_MAX_SIZE(),YCF_ALLOC_NEXT_BLOCK()%s);\n"
+                              "%s %s%s_ycf_gen_yielding(&ycf_nr_of_reductions,\n"
+                              "                         &%s,ycf_extra_context,\n"
+                              "                         ycf_yield_alloc,ycf_yield_free,\n"
+                              "                         ycf_yield_alloc_free_context,\n"
+                              "                         YCF_ALLOC_NEXT_MAX_SIZE(),\n"
+                              "                         YCF_ALLOC_NEXT_BLOCK()\n"
+                              "                         %s);\n"
                               "while(YCF_IS_YIELDED(%s)){\n"
                               "   ycf_trap_location = %d;\n"
                               "   goto ycf_do_yield_label_%s;\n"
                               "  ycf_yield_location_label_%d:;\n"
-                              "   %s %s%s_ycf_gen_continue(&ycf_nr_of_reductions,&%s,ycf_extra_context);\n"
+                              "   %s %s%s_ycf_gen_continue(&ycf_nr_of_reductions,\n"
+                              "                            &%s,\n"
+                              "                            ycf_extra_context);\n"
                               "}\n"
                               "%s\n",
                               tmp_assignment_var_declaration,
@@ -465,27 +473,33 @@ typedef struct {
 } replace_return_ctx;
 
 static
-ycf_node* save_nr_of_reductions_before_return_replacer(ycf_node* candidate, ycf_node_code_scope* s, void* context){
+ycf_node* save_nr_of_reductions_before_return_replacer(ycf_node* candidate,
+                                                       ycf_node_code_scope* s,
+                                                       void* context){
   replace_return_ctx* ctx = context;
   (void)s;
   char* consume_reds_code = ctx->auto_yield ? "YCF_CONSUME_REDS(1);\n" : "";
   if(candidate->type == ycf_node_type_return_statement){
-    return ycf_node_get_from_code_scope_text(ycf_string_new("\n"
-                                                            "%s"
-                                                            "if (*ycf_trap_state != NULL) {\n"
-                                                            "   ycf_yield_free(*ycf_trap_state, ycf_yield_alloc_free_context);\n"
-                                                            "   *ycf_trap_state = NULL;\n"
-                                                            "}\n"
-                                                            "ycf_destroy_stack_allocator(&ycf_frame_alloc_data, ycf_yield_free, ycf_yield_alloc_free_context);\n"
-                                                            "*ycf_nr_of_reductions_param = ycf_nr_of_reductions;"
-                                                            "%s"
-                                                            "%s"
-                                                            "%s",
-                                                            consume_reds_code,
-                                                            mk_code_from_special_code_list(
-                                                                    ctx->on_return_or_destroy_code_list),
-                                                            mk_code_from_special_code_list(ctx->on_return_code_list),
-                                                            ycf_node_to_string(candidate)));
+    char* code =
+      ycf_string_new("\n"
+                     "%s"
+                     "if (*ycf_trap_state != NULL) {\n"
+                     "   ycf_yield_free(*ycf_trap_state, ycf_yield_alloc_free_context);\n"
+                     "   *ycf_trap_state = NULL;\n"
+                     "}\n"
+                     "ycf_destroy_stack_allocator(&ycf_frame_alloc_data,\n"
+                     "                            ycf_yield_free,\n"
+                     "                            ycf_yield_alloc_free_context);\n"
+                     "*ycf_nr_of_reductions_param = ycf_nr_of_reductions;"
+                     "%s"
+                     "%s"
+                     "%s",
+                     consume_reds_code,
+                     mk_code_from_special_code_list(
+                                                    ctx->on_return_or_destroy_code_list),
+                     mk_code_from_special_code_list(ctx->on_return_code_list),
+                     ycf_node_to_string(candidate));
+    return ycf_node_get_from_code_scope_text(code);
   } else {
     return candidate;
   }
@@ -862,7 +876,10 @@ void ast_add_yield_code_generated_define(ycf_node* source_out_tree/*Will be chan
                    " * Source: http://dbp-consulting.com/tutorials/SuppressingGCCWarnings.html\n"
                    " *\n"
                    " */\n"
-                   "#if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402\n"
+                   "#if defined(_MSC_VER)\n"
+                   "#  define YCF_GCC_DIAG_OFF(x) __pragma(warning(push, 0))\n"
+                   "#  define YCF_GCC_DIAG_ON(x)  __pragma(warning(pop))\n"
+                   "#elif ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402\n"
                    "#define YCF_GCC_DIAG_STR(s) #s\n"
                    "#define YCF_GCC_DIAG_JOINSTR(x,y) YCF_GCC_DIAG_STR(x ## y)\n"
                    "# define YCF_GCC_DIAG_DO_PRAGMA(x) _Pragma (#x)\n"
@@ -890,10 +907,16 @@ void ast_add_yield_code_generated_define(ycf_node* source_out_tree/*Will be chan
                    "  char* data;\n"
                    "};\n"
                    "\n"
-                   "#define YCF_ALLOC_NEXT_BLOCK() (ycf_frame_alloc_data.data == NULL ? NULL : "
-                   "((void*)(&ycf_frame_alloc_data.data[ycf_frame_alloc_data.size])))\n"
-                   "#define YCF_ALLOC_NEXT_MAX_SIZE() (ycf_frame_alloc_data.data == NULL ? 0 : "
-                   "(ycf_frame_alloc_data.max_size - ycf_frame_alloc_data.size))\n"
+                   "#define YCF_ALLOC_NEXT_BLOCK() (\\\n"
+                   " ycf_frame_alloc_data.data == NULL \\\n"
+                   "   ? NULL \\\n"
+                   "   : ((void*)(&ycf_frame_alloc_data.data[ycf_frame_alloc_data.size]))\\\n"
+                   ")\n"
+                   "#define YCF_ALLOC_NEXT_MAX_SIZE() (\\\n"
+                   " ycf_frame_alloc_data.data == NULL \\\n"
+                   "   ? 0 \\\n"
+                   "   : (ycf_frame_alloc_data.max_size - ycf_frame_alloc_data.size)\\\n"
+                   ")\n"
                    "\n"
                    "/* Macros for special code sections */\n"
                    "#define ON_SAVE_YIELD_STATE ON_SAVE_YIELD_STATE\n"
@@ -908,13 +931,19 @@ void ast_add_yield_code_generated_define(ycf_node* source_out_tree/*Will be chan
                    "   }\\\n"
                    "   /*special_code_end*/\n"
                    "\n"
-                   "/* clang-format off */YCF_GCC_DIAG_OFF(unused-function)/* clang-format on */\n"
-                   "static void* ycf_stack_alloc(size_t size, struct ycf_alloc_data* data, ycf_yield_alloc_type allocator, void* ycf_yield_alloc_free_context, size_t default_stack_size){\n"
+                   "/* clang-format off */\n"
+                   "YCF_GCC_DIAG_OFF(unused-function)\n"
+                   "/* clang-format on */\n"
+                   "static void* ycf_stack_alloc(size_t size,\n"
+                   "                             struct ycf_alloc_data* data,\n"
+                   "                              ycf_yield_alloc_type allocator,\n"
+                   "                              void* ycf_yield_alloc_free_context,\n"
+                   "                              size_t default_stack_size){\n"
                    "  void * ret = NULL;"
                    "  if (data->data == NULL) {\n"
                    "    if (default_stack_size == 0) {\n"
                    "      fprintf(stderr, \"ycf_alloc: not enough stack!!\\n\");\n"
-                   "      exit(1);"
+                   "      exit(1);\n"
                    "    }\n"
                    "    data->data = allocator(default_stack_size, ycf_yield_alloc_free_context);\n"
                    "    data->needs_freeing = 1;"
@@ -923,18 +952,22 @@ void ast_add_yield_code_generated_define(ycf_node* source_out_tree/*Will be chan
                    "  }\n"
                    "  if (data->size + size > data->max_size) {\n"
                    "    fprintf(stderr, \"ycf_alloc: not enough stack!\\n\");\n"
-                   "    exit(1);"
+                   "    exit(1);\n"
                    "  }\n"
                    "  ret = &data->data[data->size];\n"
                    "  data->size = data->size + size;\n"
                    "  return ret;\n"
                    "}\n"
-                   "static void ycf_destroy_stack_allocator(struct ycf_alloc_data* data, ycf_yield_free_type freer, void* ycf_yield_alloc_free_context){\n"
+                   "static void ycf_destroy_stack_allocator(struct ycf_alloc_data* data,\n"
+                   "                                        ycf_yield_free_type freer,\n"
+                   "                                        void* ycf_yield_alloc_free_context){\n"
                    "  if(data->needs_freeing){\n"
                    "    freer(data->data, ycf_yield_alloc_free_context);\n"
                    "  }\n"
                    "}\n"
-                   "/* clang-format off */YCF_GCC_DIAG_ON(unused-function)/* clang-format on */\n"
+                   "/* clang-format off */\n"
+                   "YCF_GCC_DIAG_ON(unused-function)\n"
+                   "/* clang-format on */\n"
                    "\n"
                    "#include <limits.h>\n"
                    "#define YCF_MAX_NR_OF_REDS LONG_MAX\n"
@@ -996,11 +1029,21 @@ ycf_node* mk_continue_function_node(char* yielding_function_name,
     current = current->next;
   }
   char* fun_call_str =
-    ycf_string_new("%s_ycf_gen_yielding(ycf_number_of_reduction_param, ycf_trap_state, ycf_extra_context, ycf_my_trap_state->ycf_yield_alloc,ycf_my_trap_state->ycf_yield_free,ycf_my_trap_state->ycf_yield_alloc_free_context,ycf_my_trap_state->ycf_stack_alloc_size_or_max_size,ycf_my_trap_state->ycf_stack_alloc_data%s)\n",
+    ycf_string_new("%s_ycf_gen_yielding(ycf_number_of_reduction_param,\n"
+                   "                    ycf_trap_state,\n"
+                   "                    ycf_extra_context,\n"
+                   "                    ycf_my_trap_state->ycf_yield_alloc,\n"
+                   "                    ycf_my_trap_state->ycf_yield_free,\n"
+                   "                    ycf_my_trap_state->ycf_yield_alloc_free_context,\n"
+                   "                    ycf_my_trap_state->ycf_stack_alloc_size_or_max_size,\n"
+                   "                    ycf_my_trap_state->ycf_stack_alloc_data\n"
+                   "                    %s)\n",
                    yielding_function_name,
                    parameters);
   char* code = ycf_string_new("\n"
-                              "%s %s_ycf_gen_continue(long* ycf_number_of_reduction_param, void** ycf_trap_state, void* ycf_extra_context){\n"
+                              "%s %s_ycf_gen_continue(long* ycf_number_of_reduction_param,\n"
+                              "                       void** ycf_trap_state,\n"
+                              "                       void* ycf_extra_context){\n"
                               "     struct %s* ycf_my_trap_state = *ycf_trap_state;\n"
                               "%s"
                               "}\n",
@@ -1218,11 +1261,15 @@ ycf_node* mk_wrap_in_surpress_warn(char* warning, ycf_node* to_wrap) {
   ycf_string_printable_buffer* buf = ycf_string_printable_buffer_new();
   ycf_string_printable_buffer_printf(buf,
                                      "\n"
-                                     "/* clang-format off */YCF_GCC_DIAG_OFF(%s)/* clang-format on */\n", warning);
+                                     "/* clang-format off */\n"
+                                     "YCF_GCC_DIAG_OFF(%s)\n"
+                                     "/* clang-format on */\n", warning);
   ycf_node_print(to_wrap, buf);
   ycf_string_printable_buffer_printf(buf,
                                      "\n"
-                                     "/* clang-format off */YCF_GCC_DIAG_ON(%s)/* clang-format on */\n", warning);
+                                     "/* clang-format off */\n"
+                                     "YCF_GCC_DIAG_ON(%s)\n"
+                                     "/* clang-format on */\n", warning);
   return ycf_node_new_text_node(buf->buffer);
 
 }

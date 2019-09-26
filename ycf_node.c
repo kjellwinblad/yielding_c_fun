@@ -34,7 +34,7 @@
 
 GENERATE_LIST_FUNCTIONS(ycf_node)
 
-#define YCF_UNIQ_VARIABLE_NAME_NUMBER_PREFIX "_UNIQ_NUM_"
+#define YCF_UNIQ_VARIABLE_NAME_NUMBER_PREFIX "_N"
 
 static int ycf_uniq_variable_name_number_counter = 0;
 
