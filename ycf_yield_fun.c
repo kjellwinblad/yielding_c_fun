@@ -134,18 +134,10 @@ ycf_node* mk_yield_code(ycf_node* f_node,
   } else{
     ycf_symbol_list ret_type = ycf_node_get_return_type(f_node);
     ret_code =
-      ycf_string_new("/* clang-format off */\n"
-                     "YCF_GCC_DIAG_OFF(uninitialized);\n"
-                     "YCF_GCC_DIAG_OFF(maybe-uninitialized);\n"
-                     "/* clang-format on */\n"
-                     "  {\n"
+      ycf_string_new("  {\n"
                      "    %s ycf_ret_value;\n"
                      "    return ycf_ret_value;\n"
-                     "  }\n"
-                     "/* clang-format off */\n"
-                     "YCF_GCC_DIAG_ON(maybe-uninitialized);\n"
-                     "YCF_GCC_DIAG_ON(uninitialized);\n"
-                     "/* clang-format on */\n",
+                     "  }\n",
                      ycf_symbol_list_to_str(&ret_type));
   }
   char *debug_check_for_stack_ptrs = "";
@@ -787,11 +779,6 @@ ycf_node* mk_destroy_state_function_node(char* yielding_function_name,
   char* code =
     ycf_string_new("\n"
                    "%s void %s_ycf_gen_destroy(struct %s* ycf_my_trap_state){\n"
-                   "     /* clang-format off */\n"
-                   "     YCF_GCC_DIAG_OFF(pragmas);\n"
-                   "     YCF_GCC_DIAG_OFF(unknown-warning-option);\n"
-                   "     YCF_GCC_DIAG_OFF(unused-but-set-variable);\n"
-                   "     /* clang-format on */\n"
                    "     {\n"
                    "     %s\n"
                    "     %s\n"
@@ -800,11 +787,6 @@ ycf_node* mk_destroy_state_function_node(char* yielding_function_name,
                    "     ycf_destroy_stack_allocator(&ycf_frame_alloc_data, ycf_yield_free, ycf_yield_alloc_free_context);\n"
                    "     ycf_yield_free(ycf_my_trap_state, ycf_yield_alloc_free_context);\n"
                    "     }\n"
-                   "     /* clang-format off */\n"
-                   "     YCF_GCC_DIAG_ON(unused-but-set-variable);\n"
-                   "     YCF_GCC_DIAG_ON(unknown-warning-option);\n"
-                   "     YCF_GCC_DIAG_ON(pragmas);\n"
-                   "     /* clang-format on */\n"
                    "}\n",
                    static_aux_funs ? "static" : "",
                    yielding_function_name,
@@ -1285,6 +1267,16 @@ ycf_node* supress_warnings_wrap_yielding_fun(ycf_node* yielding_fun){
   return ret;
 }
 
+static
+ycf_node* supress_warnings_wrap_destroy_fun(ycf_node* fun){
+  ycf_node* ret = fun;
+  ret = mk_wrap_in_surpress_warn("unused-function", ret);
+  ret = mk_wrap_in_surpress_warn("unused-but-set-variable", ret);
+  ret = mk_wrap_in_surpress_warn("unknown-warning-option", ret);
+  ret = mk_wrap_in_surpress_warn("pragmas", ret);
+  return ret;
+}
+
 ycf_node* insert_yielding_function_with_prefix_suffix(ycf_node* tree_to_insert_to,
                                                       ycf_node* insert_before,
                                                       ycf_node* yielding_fun,
@@ -1579,8 +1571,7 @@ ycf_node* ast_get_ast_with_yieldified_function(ycf_node* source_tree,
   ycf_node_list_insert_before(&tree_ret->u.c_file.content, fun_change_wrapper, ycf_trap_state_struct);
   ycf_node_list_insert_after(&tree_ret->u.c_file.content,
                              ycf_trap_state_struct,
-                             mk_wrap_in_surpress_warn("unused-function",
-                                                      destroy_state_function));
+                             supress_warnings_wrap_destroy_fun(destroy_state_function));
   ycf_node_list_insert_after(&tree_ret->u.c_file.content,
                              ycf_trap_state_struct,
                              mk_wrap_in_surpress_warn("unused-function",
@@ -1614,7 +1605,7 @@ ycf_node* ast_get_ast_with_yieldified_function(ycf_node* source_tree,
     ycf_node_list_append(&(*only_yielding_funs_tree)->u.c_file.content,
                           ycf_node_new_text_node("\n"));
     ycf_node_list_append(&(*only_yielding_funs_tree)->u.c_file.content,
-                         mk_wrap_in_surpress_warn("unused-function",destroy_state_function));
+                         supress_warnings_wrap_destroy_fun(destroy_state_function));
     ycf_node_list_append(&(*only_yielding_funs_tree)->u.c_file.content,
                           ycf_node_new_text_node("\n"));
     ycf_node_list_append(&(*only_yielding_funs_tree)->u.c_file.content,
