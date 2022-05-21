@@ -1,7 +1,7 @@
 /*
  * %CopyrightBegin%
  *
- * Copyright Ericsson AB and Kjell Winblad 2019. All Rights Reserved.
+ * Copyright Ericsson AB and Kjell Winblad 2019-2021. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ typedef enum {
     ycf_symbol_type_static,
     ycf_symbol_type_inline,
     ycf_symbol_type_volatile,
-    ycf_symbol_type_consume_reds,
     ycf_symbol_type_return,
     ycf_symbol_type_if,
     ycf_symbol_type_else,

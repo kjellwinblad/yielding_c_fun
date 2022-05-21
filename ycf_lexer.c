@@ -1,7 +1,7 @@
 /*
  * %CopyrightBegin%
  *
- * Copyright Ericsson AB and Kjell Winblad 2019. All Rights Reserved.
+ * Copyright Ericsson AB and Kjell Winblad 2019-2021. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,6 @@ char* get_symbol_type_text(ycf_symbol_type type){
   case ycf_symbol_type_equal_sign: return "ycf_symbol_type_equal_sign";
   case ycf_symbol_type_semicolon: return "ycf_symbol_type_semicolon";
   case ycf_symbol_type_comma: return "ycf_symbol_type_comma";
-  case ycf_symbol_type_consume_reds: return "ycf_symbol_type_consume_reds";
   case ycf_symbol_type_pointer_field_access: return "ycf_symbol_type_pointer_field_access";
   case ycf_symbol_type_period: return "ycf_symbol_type_period";
   case ycf_symbol_type_const: return "ycf_symbol_type_const";
@@ -128,7 +127,7 @@ int string_litteral_finder(symbol_finder* f, char* text){
     if(starts_with(&(text[pos]), "\"")){
       return pos + 1;
     }else {
-      printf("Broken string litteral\n");
+      printf("Broken string literal\n");
       exit(1);
     }
   }
@@ -294,11 +293,6 @@ ycf_symbol_list ycf_symbol_list_from_text(char* text){
       {
         .type = ycf_symbol_type_volatile,
         .str_1 = "volatile",
-        .finder = fixed_alpha_string
-      },
-      {
-        .type = ycf_symbol_type_consume_reds,
-        .str_1 = "YCF_CONSUME_REDS",
         .finder = fixed_alpha_string
       },
       {
